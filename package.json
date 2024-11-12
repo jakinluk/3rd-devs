@@ -12,6 +12,9 @@
   },
   "scripts": {
     "agent": "bun run agent/app.ts",
+    "s01e01": "bun _lessons/s01e01/app.ts",
+    "s01e02": "bun _lessons/s01e02/app.ts",
+    "s01e03": "bun _lessons/s01e03/app.ts",
     "advanced_web_search": "bun advanced_web_search/app.ts",
     "chain": "bun run chain/app.ts",
     "docs": "bun run docs/app.ts",
@@ -103,6 +106,7 @@
     "better-sqlite3": "11.3.0",
     "canvas": "^2.11.2",
     "chalk": "^5.3.0",
+    "cheerio": "^1.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
