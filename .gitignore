@@ -7,3 +7,4 @@ node_modules/
 .vscode/
 .cursorrules
 files/context/*
+_lessons/memory/memories/*

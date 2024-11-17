@@ -14,7 +14,7 @@ const prompt = `You are the helpful assistant. You are given a general knowledge
 
 
 async function getTestAnswer(question: string, answer: string): Promise<string | null> {
-    const llmResponse = (await openAIService.completion([
+    const llmResponse = (await openAIService.completion({ messages:[
                 {
                     "role": "system",   
                     "content": prompt
@@ -23,7 +23,9 @@ async function getTestAnswer(question: string, answer: string): Promise<string |
                     "role": "user",
                     "content": question
                 }
-            ])) as OpenAI.Chat.Completions.ChatCompletion;
+            ],
+            jsonMode: true
+        })) as OpenAI.Chat.Completions.ChatCompletion;
 
     return llmResponse.choices[0]?.message?.content || null;
 }
@@ -42,7 +44,7 @@ async function main() {
                 if (item.question && item.answer !== undefined) {
                     // Extract numbers from question
                     const numbers = item.question.split('+').map((n: string) => parseInt(n.trim()));
-                    console.log(numbers);
+                    // console.log(numbers);
                     if (numbers.length === 2) {
                         // Calculate correct answer
                         const correctAnswer = numbers[0] + numbers[1];
@@ -59,7 +61,7 @@ async function main() {
                 }
                 return item;
             }));
-            console.log(JSON.stringify(data['test-data'], null, 4));
+            // console.log(JSON.stringify(data['test-data'], null, 4));
         }
 
         data["apikey"] = apiKey!;
@@ -74,7 +76,15 @@ async function main() {
             answer: data,
         });
 
-        console.log(submitResponse);
+        // console.log(submitResponse);
+
+        // Wait for user input before exiting
+        console.log("\nPress Enter to exit...");
+        await new Promise(resolve => {
+            process.stdin.once('data', () => {
+                resolve(undefined);
+            });
+        });
 
     } catch (error) {
         console.error('Error processing JSON file:', error);
@@ -83,3 +93,5 @@ async function main() {
 }
 
 main();
+
+

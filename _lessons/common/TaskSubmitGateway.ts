@@ -11,7 +11,7 @@ type SubmitResponse = {
 
 class HttpClient {
     async post<T, R>(url: string, data: T): Promise<R> {
-        console.log(`HttpClientPOST ${url}`, data);
+        console.debug(`HttpClientPOST ${url}`, data);
         return fetch(url, {
             method: "POST",
             body: JSON.stringify(data),
