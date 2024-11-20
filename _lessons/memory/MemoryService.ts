@@ -3,7 +3,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import slugify from 'slugify';
 import yaml from 'js-yaml';
-import type { OpenAIService } from './OpenAIService';
+import type { OpenAIService } from './../common/OpenAIService';
 import { VectorStore } from './VectorStore';
 import { LangfuseService } from './LangfuseService';
 import { LangfuseTraceClient } from 'langfuse';
@@ -351,7 +351,7 @@ export class MemoryService {
 
   private parseGitDiff(diff: string): { added: string[], modified: string[], deleted: string[] } {
     const lines = diff.split('\n');
-    const changes = { added: [], modified: [], deleted: [] };
+    const changes: { added: string[], modified: string[], deleted: string[] } = { added: [], modified: [], deleted: [] };
 
     for (const line of lines) {
       const [status, file] = line.split('\t');
