@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Agent Call</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+        position: relative;
+    }
+
+    body.drag-active::after {
+        content: 'Drop MP3 file here';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        z-index: 1000;
+    }
+
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-out;
+        z-index: 1001;
+    }
+
+    .notification.success {
+        background-color: rgba(34, 197, 94, 0.9);
+    }
+
+    .notification.error {
+        background-color: rgba(239, 68, 68, 0.9);
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-lg text-center border border-gray-700/50">
+
+        <!-- Canvas for the pulsing circle -->
+        <canvas id="visualizationCanvas" width="384" height="200" class="mx-auto"></canvas>
+
+        <!-- Conversation History -->
+        <div id="conversationHistory" class="w-full h-64 overflow-y-auto mb-4 p-4 bg-gray-900/50 rounded-xl text-left text-gray-100 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+            <!-- Conversation messages will appear here -->
+        </div>
+
+        <!-- Latest Transcription -->
+        <div id="latestTranscription" class="block w-full p-4 mb-4 bg-gray-900/50 rounded-xl text-left text-gray-300">
+            ...
+        </div>
+
+        <!-- Call / Hang Up Button -->
+        <button id="callBtn" class="w-full py-3 px-6 rounded-full transition duration-300 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50">
+          Call
+        </button>
+    </div>
+    <script type="module" src="./src/app.ts"></script>
+</body>
+</html>
