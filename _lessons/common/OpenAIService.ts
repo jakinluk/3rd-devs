@@ -1,9 +1,12 @@
 import { Tokenizer } from "./Tokenizer";
 import { observeOpenAI } from "langfuse";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import type { ChatCompletionMessageParam, ChatCompletion, ChatCompletionChunk } from "openai/resources/chat/completions";
 import type { ParsingError } from "./types";
 import type { CreateEmbeddingResponse } from 'openai/resources/embeddings';
+import { ElevenLabsClient } from "elevenlabs";
+import Groq from "groq-sdk/index.mjs";
+import type { Stream } from "stream";
 
 
 // import { Langfuse } from "langfuse";
@@ -17,17 +20,25 @@ import type { CreateEmbeddingResponse } from 'openai/resources/embeddings';
 export class OpenAIService {
   private openai: OpenAI;
   private tokenizer: Tokenizer;
+  private elevenlabs: ElevenLabsClient;
+  private groq: Groq;
 
   constructor(opts?: {tracing?: boolean}) {
     if (opts?.tracing) {
       console.log("Tracing enabled");
       this.openai = observeOpenAI(new OpenAI(), {
-        generationName: "OpenAI.Chat.Trace_v2",
+        generationName: "OpenAI.Chat.Trace",
       });
     }else {
       this.openai = new OpenAI();
     }
     this.tokenizer = new Tokenizer();
+    this.elevenlabs = new ElevenLabsClient({
+      apiKey: process.env.ELEVENLABS_API_KEY
+    });
+    this.groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY
+    });
   }
 
   async completion({
@@ -114,4 +125,58 @@ export class OpenAIService {
       throw error;
     }
   }
+
+  async transcribe(audioBuffer: Buffer): Promise<string> {
+    console.log("Transcribing audio...");
+    
+    const transcription = await this.openai.audio.transcriptions.create({
+      file: await toFile(audioBuffer, 'speech.mp3'),
+      language: 'pl',
+      model: 'whisper-1',
+  });
+    return transcription.text;
+  }
+
+
+  async transcribeGroq(audioBuffer: Buffer): Promise<string> {
+    const transcription = await this.groq.audio.transcriptions.create({
+      file: await toFile(audioBuffer, 'speech.mp3'),
+      language: 'pl',
+      model: 'whisper-large-v3',
+    });
+    return transcription.text;
+  }
+
+  async speak(text: string): Promise<ReadableStream<Uint8Array> | null> {
+    const response = await this.openai.audio.speech.create({
+      model: 'tts-1',
+      voice: 'alloy',
+      input: text,
+    });
+  
+    console.log("Response:", response.body);
+    const stream = response.body;
+    return stream;
+  }
+
+  async speakEleven(
+    text: string,
+    voice: string = "21m00Tcm4TlvDq8ikWAM",
+    modelId: string = "eleven_turbo_v2_5"
+  ): Promise<Stream> {
+    try {
+      const audioStream = await this.elevenlabs.generate({
+        voice,
+        text,
+        model_id: modelId,
+        stream: true,
+      });
+
+      return audioStream;
+    } catch (error) {
+      console.error("Error in ElevenLabs speech generation:", error);
+      throw error;
+    }
+  }
+  
 }

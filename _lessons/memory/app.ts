@@ -6,12 +6,14 @@ import { AssistantService } from './AssistantService';
 import { defaultKnowledge as knowledge } from './prompts';
 import { LangfuseService } from './LangfuseService';
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { execSync } from 'child_process';
-import path from 'path';
+import { chatLimiter, authMiddleware, errorHandler, validationMiddleware } from './../common/middlewares';
+
 
 const app = express();
 const port = 3000;
 app.use(express.json());
+app.use(errorHandler);
+
 
 const memoryDir = '_lessons/memory/memories';
 
@@ -20,7 +22,7 @@ const openaiService = new OpenAIService();
 const memoryService = new MemoryService(memoryDir, openaiService, langfuseService);
 const assistantService = new AssistantService(openaiService, memoryService, langfuseService);
 
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', chatLimiter, authMiddleware, validationMiddleware, async (req, res) => {
   let { messages, conversation_id = uuidv4() } = req.body;
 
   console.log('req.body', req.body);

@@ -174,7 +174,14 @@ async function interact() {
     if (latestTranscription.trim()) {
         // update final transcription one more time
         await performTranscription();
-        conversationHistory.push({ role: 'user', content: latestTranscription });
+
+        const notAttachedToConversation = mp3Files.filter(file => !file.attachedToConversation);
+        const mp3Transcriptions = notAttachedToConversation
+            .map(file => `\nTranscript of witness interview ${file.name}: \n${file.transcription}`)
+            .join('\n#####');
+
+        conversationHistory.push({ role: 'user', content: latestTranscription + mp3Transcriptions });
+        notAttachedToConversation.forEach(file => file.attachedToConversation = true);
         latestTranscription = ""; // Clear the latest transcription
         latestTranscriptionDiv.textContent = "..."; // Update UI
         updateConversationHistory();
@@ -289,8 +296,8 @@ async function performFileTranscription(wavBlob: Blob, fileName: string) {
 
     try {
         const newTranscription = await transcribe(wavBlob);
-        latestTranscription = `transcribed ${fileName}`;
-        latestTranscriptionDiv.textContent = latestTranscription.trim();
+        // latestTranscription = `\nTranscript of witness interview ${fileName}: \n${newTranscription}`;
+        // latestTranscriptionDiv.textContent = latestTranscription.trim();
         return newTranscription;
     } catch (error) {
         console.error("Transcription error:", error);
@@ -359,8 +366,107 @@ interface DragEvents {
   drop: DragEvent;
 }
 
+// Update the MP3File interface
+interface MP3File {
+    id: string;
+    name: string;
+    file: File;
+    wavBlob?: Blob;
+    transcription?: string;
+    isProcessing?: boolean;
+    attachedToConversation?: boolean;
+}
+
+// Add this to your state variables
+let mp3Files: MP3File[] = [];
+
+// Update the createMP3FileElement function to show transcription status
+function createMP3FileElement(mp3File: MP3File): HTMLDivElement {
+    const fileElement = document.createElement('div');
+    fileElement.className = 'mp3-file';
+    fileElement.id = mp3File.id;
+    
+    // Update the HTML to include transcription status
+    fileElement.innerHTML = `
+        <svg class="mp3-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+        </svg>
+        <span class="mp3-file-name" title="${mp3File.name}">${mp3File.name}</span>
+        <span class="mp3-file-status ${mp3File.isProcessing ? 'processing' : ''}" title="${getStatusText(mp3File)}">
+            ${getStatusIcon(mp3File)}
+        </span>
+    `;
+
+    // Add click handler to process the file
+    fileElement.addEventListener('click', async () => {
+        if (mp3File.isProcessing) return; // Prevent multiple processing
+        
+        try {
+            // Update processing state
+            mp3File.isProcessing = true;
+            updateMP3FileElement(mp3File);
+
+            if (mp3File.wavBlob) {
+                const transcription = await performFileTranscription(mp3File.wavBlob, mp3File.name);
+                mp3File.transcription = transcription;
+                //`\nTranscript of witness interview ${fileName}: \n${newTranscription}`;
+
+                showNotification('Transcription complete!', 'success');
+            }
+        } catch (error) {
+            console.error('Error processing file:', error);
+            showNotification('Error processing file', 'error');
+        } finally {
+            mp3File.isProcessing = false;
+            updateMP3FileElement(mp3File);
+        }
+    });
+
+    return fileElement;
+}
+
+// Helper function to get status text
+function getStatusText(mp3File: MP3File): string {
+    if (mp3File.isProcessing) return 'Processing...';
+    if (mp3File.transcription) return 'Click to view transcription';
+    return 'Click to transcribe';
+}
+
+// Helper function to get status icon HTML
+function getStatusIcon(mp3File: MP3File): string {
+    if (mp3File.isProcessing) {
+        return `<svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>`;
+    }
+    if (mp3File.transcription) {
+        return `<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        </svg>`;
+    }
+    return `<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+    </svg>`;
+}
+
+// Helper function to update MP3 file element
+function updateMP3FileElement(mp3File: MP3File) {
+    const element = document.getElementById(mp3File.id);
+    if (element) {
+        const statusElement = element.querySelector('.mp3-file-status');
+        if (statusElement) {
+            statusElement.className = `mp3-file-status ${mp3File.isProcessing ? 'processing' : ''}`;
+            statusElement.setAttribute('title', getStatusText(mp3File));
+            statusElement.innerHTML = getStatusIcon(mp3File);
+        }
+    }
+}
+
+// Update the file processing in initializeDragAndDrop
 function initializeDragAndDrop() {
     const body = document.body;
+    const mp3FilesContainer = document.getElementById('mp3FilesContainer');
     
     const preventDefault = (e: Event) => {
         e.preventDefault();
@@ -388,7 +494,7 @@ function initializeDragAndDrop() {
         }
     });
 
-    // Handle the drop
+    // Update the drop handler
     body.addEventListener('drop', async (e: DragEvent) => {
         body.classList.remove('drag-active');
         
@@ -397,7 +503,7 @@ function initializeDragAndDrop() {
 
         const file = files[0];
         if (!file.type.includes('audio/mpeg') && !file.name.endsWith('.mp3')) {
-            alert('Please drop an MP3 file');
+            showNotification('Please drop an MP3 file', 'error');
             return;
         }
 
@@ -410,34 +516,38 @@ function initializeDragAndDrop() {
                 throw new Error('Failed to initialize AudioContext');
             }
 
-            const wavBlob = await convertMP3ToWav(file, audioContext, wavEncoder);
-            console.log('MP3 file converted to WAV blob:', wavBlob);
+            const mp3File: MP3File = {
+                id: `mp3-${Date.now()}`,
+                name: file.name,
+                file: file
+            };
 
-            const transcription = await performFileTranscription(wavBlob, file.name);
-            
-            // Store the WAV blob for later use
-            // You can access this blob later when needed
-            const notification = document.createElement('div');
-            notification.className = 'notification success';
-            notification.textContent = 'Audio file converted and ready!';
-            document.body.appendChild(notification);
-            
-            // Remove notification after 3 seconds
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            const wavBlob = await convertMP3ToWav(file, audioContext, wavEncoder);
+            mp3File.wavBlob = wavBlob;
+            mp3Files.push(mp3File);
+
+            // Add the file icon to the container
+            if (mp3FilesContainer) {
+                mp3FilesContainer.appendChild(createMP3FileElement(mp3File));
+            }
+
+            showNotification('Audio file converted and ready!', 'success');
 
         } catch (error) {
             console.error('Error converting MP3 file:', error);
-            
-            const notification = document.createElement('div');
-            notification.className = 'notification error';
-            notification.textContent = 'Error converting audio file';
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            showNotification('Error converting audio file', 'error');
         }
     });
+}
+
+// Helper function for notifications
+function showNotification(message: string, type: 'success' | 'error') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }

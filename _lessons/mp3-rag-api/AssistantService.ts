@@ -1,8 +1,8 @@
-import type { OpenAIService } from "./OpenAIService";
+import type { OpenAIService } from "../common/OpenAIService";
 import { v4 as uuidv4 } from 'uuid';
 import type { ChatCompletion, ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { LangfuseTraceClient } from 'langfuse';
-import type { LangfuseService } from "./LangfuseService";
+import type { LangfuseService } from "../common/LangfuseService";
 
 export interface ParsingError {
     error: string;
@@ -59,10 +59,4 @@ export class AssistantService {
             throw error;
         }
     }
-
-    // async getRelevantContext(query: string): Promise<string> {
-    //     const similarMemories = await this.memoryService.searchSimilarMemories(query);
-    //     return similarMemories.map(memory => memory.content.text).join('\n\n');
-    // }
-
 }

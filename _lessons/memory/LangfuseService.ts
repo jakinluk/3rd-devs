@@ -1,5 +1,4 @@
 import { Langfuse, LangfuseTraceClient, LangfuseSpanClient, LangfuseGenerationClient, LangfuseEventClient } from 'langfuse';
-import type { ChatCompletionMessageParam, ChatCompletion } from "openai/resources/chat/completions";
 
 export class LangfuseService {
   public langfuse: Langfuse;

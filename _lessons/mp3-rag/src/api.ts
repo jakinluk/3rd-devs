@@ -26,7 +26,7 @@ let currentAudio: HTMLAudioElement | null = null;
 
 export async function speak(text: string): Promise<HTMLAudioElement> {
   try {
-    const response = await fetchAPI('speakEleven', {
+    const response = await fetchAPI('speak', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),

@@ -58,9 +58,96 @@
             opacity: 1;
         }
     }
+
+    .mp3-files-container {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        background: rgba(17, 24, 39, 0.7);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 100;
+    }
+
+    .mp3-file {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s;
+        cursor: pointer;
+        position: relative;
+        min-width: 80px;
+    }
+
+    .mp3-file:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .mp3-file-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 4px;
+        color: #fff;
+    }
+
+    .mp3-file-name {
+        font-size: 12px;
+        color: #fff;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .mp3-file-status {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(17, 24, 39, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .mp3-file-status.processing {
+        background: rgba(59, 130, 246, 0.9);
+    }
+
+    .mp3-file:hover .mp3-file-status {
+        transform: scale(1.1);
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen flex items-center justify-center">
+    <div id="mp3FilesContainer" class="mp3-files-container"></div>
     <div class="bg-gray-800/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-lg text-center border border-gray-700/50">
 
         <!-- Canvas for the pulsing circle -->

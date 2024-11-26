@@ -6,7 +6,7 @@ import path from 'path';
 
 const apiKey = process.env.PERSONAL_API_KEY;
 const task = "JSON";
-const endpoint = "https://centrala.ag3nts.org/report ";
+const endpoint = "https://centrala.ag3nts.org/report";
 
 const taskSubmitGateway = new TaskSubmitGateway({apiKey: apiKey!, task: task, endpoint: endpoint});  
 const openAIService = new OpenAIService({tracing: true});
@@ -74,7 +74,7 @@ async function main() {
             task: task,
             apikey: apiKey!,
             answer: data,
-        });
+        }, "json");
 
         // console.log(submitResponse);
 
