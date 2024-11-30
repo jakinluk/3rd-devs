@@ -179,4 +179,36 @@ export class OpenAIService {
     }
   }
   
+  async generateImage({
+    prompt,
+    model = "dall-e-3",
+    size = "1024x1024",
+    quality = "standard",
+    style = "natural",
+    n = 1
+  }: {
+    prompt: string,
+    model?: "dall-e-2" | "dall-e-3",
+    size?: "1024x1024" | "1792x1024" | "1024x1792",
+    quality?: "standard" | "hd",
+    style?: "natural" | "vivid",
+    n?: number
+  }) {
+    try {
+      const response = await this.openai.images.generate({
+        model,
+        prompt,
+        n,
+        size,
+        quality,
+        style,
+        response_format: "url"
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error generating image:", error);
+      throw error;
+    }
+  }
 }
