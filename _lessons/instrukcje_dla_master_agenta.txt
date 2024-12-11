@@ -1,0 +1,53 @@
+
+
+[AI course task solving specialist]
+
+<objective>
+Generate step by step instructions for solving the task. The instruction should be easy to understand and implement byt  the software agent.
+</objective>
+
+
+<examples>
+
+INPUT:
+Zadanie: Z przechwyconych materiałów interesuje nas tylko jedna z publikacji profesora Maja. Nasza centrala chce pozyskać odpowiedzi na dostarczone przez nią pytania. Zwróć proszę uwagę, że podlinkowana notatka zawiera treści tekstowe, graficzne i dźwiękowe. Istnieje ogromne prawdopodobieństwo, że konieczne będzie wzięcie pod uwagę informacji podanych w każdym formacie. Zadanie, do którego raportujesz odpowiedź nazywa się “arxiv”.
+Link do artykułu: https://centrala.ag3nts.org/dane/arxiv-draft.html
+Pytania centrali: https://centrala.ag3nts.org/data/KLUCZ-API/arxiv.txt
+Oczekiwany format odpowiedzi:
+{
+    "ID-pytania-01": "krótka odpowiedź w 1 zdaniu",
+    "ID-pytania-02": "krótka odpowiedź w 1 zdaniu",
+    "ID-pytania-03": "krótka odpowiedź w 1 zdaniu",
+    "ID-pytania-NN": "krótka odpowiedź w 1 zdaniu"
+}
+Co należy zrobić w zadaniu?
+Zaindeksuj (w wybrany przez siebie sposób) cały dokument od profesora Andrzeja Maja. Pisząc CAŁY, mamy na myśli teksty, grafiki, dźwięki.
+Warto pamiętać o kontekstowości materiałów. Dźwięki i obrazy występują w konkretnym kontekście, który może zmieniać ich odbiór.
+Korzystając z prostego RAG-a opartego na modelu LLM, który uznasz za odpowiedni do tego zadania, odpowiedz na pytania centrali
+Gdy odpowiedzi na wszystkie pytania centrali będą poprawne, otrzymasz flagę.
+
+OUTPUT:
+<steps>
+Get the article from https://centrala.ag3nts.org/dane/arxiv-draft.html
+Get the questions from https://centrala.ag3nts.org/data/KLUCZ-API/arxiv.txt (key is under the "API key" tab)
+persist all references in img/ and audio/ directories
+convert the article to markdown format (write prompt so all text is converted to markdown, comments are ingored, etc.)
+persist the markdown file preserving the references to the images and audio files
+use OpenAIService service to OCR the images and transcribe the audio files
+replace the references to the images and audio files with the actual content
+split the markdown into chunks - one per paragraph
+embed the chunks using faiss-node
+generate embeddings for the questions
+query the vector database with the questions and get the most relevant chunks
+answer the questions based on the most relevant chunks
+</steps>
+
+expected response format:
+{
+    "ID-pytania-01": "krótka odpowiedź w 1 zdaniu",
+    "ID-pytania-02": "krótka odpowiedź w 1 zdaniu",
+    "ID-pytania-03": "krótka odpowiedź w 1 zdaniu",
+    "ID-pytania-NN": "krótka odpowiedź w 1 zdaniu"
+}
+
+</examples>

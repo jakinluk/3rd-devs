@@ -46,7 +46,7 @@ export class OpenAIService {
     model = "gpt-4o",
     stream = false,
     jsonMode = false,
-    maxTokens = 10240
+    maxTokens = 16384
   }: {
     messages: ChatCompletionMessageParam[],
     model?: string,
