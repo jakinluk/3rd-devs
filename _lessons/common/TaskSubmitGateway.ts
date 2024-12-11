@@ -23,8 +23,13 @@ class TaskSubmitGateway {
     private readonly httpClient = new HttpClient();
     constructor(private readonly params: {apiKey: string, task: string, endpoint: string}) {}
 
-    async submit<T>(submit: SubmitPayload<T>, type: "json" | "text"): Promise<SubmitResponse> {
-        return await this.httpClient.post<SubmitPayload<T>, SubmitResponse>(this.params.endpoint, submit, type);
+    async submit<T>(submit: T, type: "json" | "text"): Promise<SubmitResponse> {
+        const payload: SubmitPayload<T> = {
+            task: this.params.task,
+            apikey: this.params.apiKey,
+            answer: submit
+        };
+        return await this.httpClient.post<SubmitPayload<T>, SubmitResponse>(this.params.endpoint, payload, type);
     }
 }
 

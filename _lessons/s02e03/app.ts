@@ -57,11 +57,7 @@ async function main() {
         }
         console.log("image url: ", imageUrl);
         // Submit the task
-        const submitResponse = await taskSubmitGateway.submit<string>({
-            task: task,
-            apikey: apiKey!,
-            answer: imageUrl,
-        }, "text");
+        const submitResponse = await taskSubmitGateway.submit<string>(imageUrl, "text");
 
         console.log(submitResponse);
 

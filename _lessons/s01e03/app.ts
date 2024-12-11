@@ -70,11 +70,7 @@ async function main() {
         await fs.writeFile(path.join(process.cwd(), '_lessons', 's01e03', 'json_updated.txt'), JSON.stringify(data, null, 4), 'utf-8');
 
         // Submit the task
-        const submitResponse = await taskSubmitGateway.submit<any>({
-            task: task,
-            apikey: apiKey!,
-            answer: data,
-        }, "json");
+        const submitResponse = await taskSubmitGateway.submit<any>(data, "json");
 
         // console.log(submitResponse);
 

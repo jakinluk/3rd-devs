@@ -14,11 +14,7 @@ async function main() {
         const response = "Ulica prof. Stanisława Łojasiewicza"
 
         // Submit the task
-        const submitResponse = await taskSubmitGateway.submit<string>({
-            task: task,
-            apikey: apiKey!,
-            answer: response,
-        }, "json");
+        const submitResponse = await taskSubmitGateway.submit<string>(response, "text");
 
         console.log(submitResponse);
 

@@ -125,11 +125,7 @@ async function main() {
         // };
 
         // Submit the task
-        const submitResponse = await taskSubmitGateway.submit<Answer>({
-            task: task,
-            apikey: apiKey!,
-            answer: answer,
-        }, "text");
+        const submitResponse = await taskSubmitGateway.submit<Answer>(answer, "text");
 
         console.log("response", submitResponse);
         console.log("response", JSON.stringify(submitResponse, null, 2));
