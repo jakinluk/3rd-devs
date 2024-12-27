@@ -16,6 +16,12 @@ interface QuestionAnswer {
     [key: string]: string;
 }
 
+interface Section {
+    header: string;
+    content: string[];
+    chunks: Map<string, string>;
+}
+
 const BASE_DIR = path.join(process.cwd(), '_lessons/s02e05');
 
 export class ArxivProcessor {
@@ -23,6 +29,12 @@ export class ArxivProcessor {
     private readonly openAIService: OpenAIService;
     private readonly vectorStore: VectorStore;
     private chunks: Map<string, string> = new Map();
+    private sections: Map<string, Section> = new Map(); // chunkId -> section mapping
+    private currentSection: Section = {
+        header: '',
+        content: [],
+        chunks: new Map()
+    };
 
     constructor() {
         this.apiKey = process.env.PERSONAL_API_KEY || '';
@@ -56,7 +68,6 @@ export class ArxivProcessor {
         // 5. Split and embed content
         this.splitIntoChunks(processedMarkdown);
 
-        throw new Error('Stop here');
         await this.embedChunks();
 
         // 6. Process questions and generate answers
@@ -120,7 +131,7 @@ export class ArxivProcessor {
             const imageFilePath = path.join(BASE_DIR, imagePath);
             const imageContent = await this.processImage(imageFilePath);
             // Replace all occurrences of this image reference
-            processedContent = processedContent.replaceAll(fullMatch, imageContent);
+            processedContent = processedContent.replaceAll(fullMatch, `[${fullMatch}] Załącznik - Opis grafiki:\n> ${imageContent}`);
         }
 
         // Process audio - matches [filename.mp3](path/to/audio.mp3)
@@ -139,7 +150,7 @@ export class ArxivProcessor {
             const audioFilePath = path.join(BASE_DIR, audioPath);
             const audioContent = await this.processAudio(audioFilePath);
             // Replace all occurrences of this audio reference
-            processedContent = processedContent.replaceAll(fullMatch, audioContent);
+            processedContent = processedContent.replaceAll(fullMatch, `Załącznik - Zapis nagrania:\n> ${audioContent}`);
         }
 
         await fs.writeFile(path.join(BASE_DIR, 'article_processed.md'), processedContent, 'utf-8');
@@ -214,8 +225,27 @@ export class ArxivProcessor {
     }
 
     private async embedChunks(): Promise<void> {
+        const embeddingCacheDir = path.join(BASE_DIR, 'vector_store', 'embedding_cache');
+        await fs.mkdir(embeddingCacheDir, { recursive: true });
+
         for (const [chunkId, chunk] of this.chunks.entries()) {
-            const embedding = await this.openAIService.createEmbedding(chunk);
+            const embeddingCachePath = path.join(embeddingCacheDir, `${chunkId}.json`);
+            
+            let embedding: number[];
+            
+            // Try to load from cache
+            const cacheExists = await fs.access(embeddingCachePath).then(() => true).catch(() => false);
+            if (cacheExists) {
+                console.log(`Loading cached embedding for chunk ${chunkId.slice(0, 8)}...`);
+                const cachedData = await fs.readFile(embeddingCachePath, 'utf-8');
+                embedding = JSON.parse(cachedData);
+            } else {
+                console.log(`Generating embedding for chunk ${chunkId.slice(0, 8)}...`);
+                embedding = await this.openAIService.createEmbedding(chunk);
+                // Cache the embedding
+                await fs.writeFile(embeddingCachePath, JSON.stringify(embedding), 'utf-8');
+            }
+
             await this.vectorStore.add(embedding, chunkId);
         }
     }
@@ -228,14 +258,34 @@ export class ArxivProcessor {
             const questionEmbedding = await this.openAIService.createEmbedding(questionText);
             const relevantChunks = await this.vectorStore.search(questionEmbedding, 3);
 
-            const chunkContents = relevantChunks
-                .map(result => this.getChunkContent(result.id))
-                .filter(Boolean);
+            // Group chunks by section and get unique sections
+            const relevantSections = new Set<string>();
+            for (const result of relevantChunks) {
+                for (const section of this.sections.values()) {
+                    if (section.chunks.has(result.id)) {
+                        relevantSections.add(section.header);
+                        break;
+                    }
+                }
+            }
 
-            const context = chunkContents.join('\n\n');
+            // Build context from relevant sections
+            const context = Array.from(relevantSections)
+                .map(header => {
+                    const section = this.sections.get(header);
+                    if (!section) return '';
+                    return `## ${header}\n\n${section.content.join('\n')}`;
+                })
+                .filter(Boolean)
+                .join('\n\n');
+
             const prompt = ANSWER_GENERATION_PROMPT
                 .replace('{{context}}', context)
                 .replace('{{question}}', questionText);
+
+            // log question  and context in a nice way
+            console.log(`Question: ${questionText}`);
+            console.log(`Context: ${context}`);
 
             const response = await this.openAIService.completion({
                 messages: [
@@ -246,6 +296,7 @@ export class ArxivProcessor {
             if (!answer) {
                 throw new Error('No answer returned from OpenAI');
             }
+            console.log(`Answer: ${answer}`);
             answers[questionId.trim()] = answer.trim();
         }
 
@@ -253,18 +304,72 @@ export class ArxivProcessor {
     }
 
     private splitIntoChunks(content: string): string[] {
-        const chunks = content.split('\n\n').filter(Boolean);
-        // Store chunks with their MD5 hashes
-        chunks.forEach(chunk => {
-            const chunkId = this.generateChunkId(chunk);
-            this.chunks.set(chunkId, chunk);
-        });
+        const lines = content.split('\n');
+        const chunks: string[] = [];
+        let currentChunk: string[] = [];
         
+        // Reset sections
+        this.sections.clear();
+        this.currentSection = {
+            header: 'Introduction',  // Default section
+            content: [],
+            chunks: new Map()
+        };
+
+        for (const line of lines) {
+            if (line.startsWith('## ')) {
+                // When we find a header, store the current chunk if exists
+                if (currentChunk.length > 0) {
+                    this.processChunk(currentChunk.join('\n'));
+                    currentChunk = [];
+                }
+                
+                // Start new section
+                const header = line.replace('## ', '').trim();
+                this.currentSection = {
+                    header,
+                    content: [],
+                    chunks: new Map()
+                };
+                this.sections.set(header, this.currentSection);
+                
+            } else if (line.trim() === '') {
+                // Empty line marks end of chunk
+                if (currentChunk.length > 0) {
+                    this.processChunk(currentChunk.join('\n'));
+                    currentChunk = [];
+                }
+            } else {
+                currentChunk.push(line);
+                this.currentSection.content.push(line);
+            }
+        }
+
+        // Process the last chunk if exists
+        if (currentChunk.length > 0) {
+            this.processChunk(currentChunk.join('\n'));
+        }
+
         return chunks;
     }
 
+    private processChunk(chunk: string): void {
+        if (chunk.trim()) {
+            const chunkId = this.generateChunkId(chunk);
+            this.chunks.set(chunkId, chunk);
+            this.currentSection.chunks.set(chunkId, chunk);
+        }
+    }
+
     private getChunkContent(chunkId: string): string {
-        return this.chunks.get(chunkId) || '';
+        // Find the section containing this chunk
+        for (const section of this.sections.values()) {
+            if (section.chunks.has(chunkId)) {
+                // Return the entire section content
+                return section.content.join('\n');
+            }
+        }
+        return '';
     }
 }
 
@@ -280,11 +385,9 @@ async function main() {
             endpoint: 'https://centrala.ag3nts.org/report'
         });
 
-        await submitGateway.submit({
-            task: 'arxiv',
-            apikey: process.env.PERSONAL_API_KEY || '',
-            answer: answers
-        }, 'json');
+        const result = await submitGateway.submit<QuestionAnswer>(answers, 'json');
+
+        console.log(result);
 
     } catch (error) {
         console.error('Error processing article:', error);
