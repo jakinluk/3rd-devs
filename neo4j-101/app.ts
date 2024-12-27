@@ -9,8 +9,9 @@ if (!process.env.NEO4J_URI || !process.env.NEO4J_USER || !process.env.NEO4J_PASS
 }
 
 const openAIService = new OpenAIService();
+console.log(process.env.NEO4J_URI);
 const neo4jService = new Neo4jService(
-  process.env.NEO4J_URI,
+  "neo4j://localhost:7687", // process.env.NEO4J_URI,
   process.env.NEO4J_USER,
   process.env.NEO4J_PASSWORD,
   openAIService
