@@ -53,7 +53,7 @@ export class OpenAIService {
     stream?: boolean,
     jsonMode?: boolean,
     maxTokens?: number
-  }): Promise<OpenAI.Chat.Completions.ChatCompletion | AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>> {
+  }): Promise<ChatCompletion | AsyncIterable<ChatCompletionChunk>> {
     try {
       const tokenCount = await this.tokenizer.countTokens(messages, model);
       console.log(`Token count for model ${model}: ${tokenCount}`);
@@ -85,9 +85,9 @@ export class OpenAIService {
       // });
       
       if (stream) {
-        return chatCompletion as AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
+        return chatCompletion as AsyncIterable<ChatCompletionChunk>;
       } else {
-        return chatCompletion as OpenAI.Chat.Completions.ChatCompletion;
+        return chatCompletion as ChatCompletion;
       }
     } catch (error) {
       console.error("Error in OpenAI completion:", error);
