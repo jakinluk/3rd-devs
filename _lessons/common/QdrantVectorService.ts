@@ -4,7 +4,16 @@ import { OpenAIService } from "./OpenAIService";
 import fs from "fs/promises";
 import path from "path";
 
-export class VectorService {
+
+type SearchResult<R extends Record<string, unknown>> = {
+  id: string | number;
+  version: number;
+  score: number;
+  payload: R;
+}
+
+
+export class QdrantVectorService {
   private client: QdrantClient;
   private openAIService: OpenAIService;
 
@@ -50,7 +59,7 @@ export class VectorService {
   ) {
     const pointsToUpsert = await Promise.all(
       points.map(async (point) => {
-        console.log(`Creating embedding for ${point.metadata?.title}`);
+        console.log(`Creating embedding for ${point.text}`);
         const embedding = await this.openAIService.createEmbedding(point.text);
 
         return {
@@ -64,27 +73,33 @@ export class VectorService {
       })
     );
 
-    const pointsFilePath = path.join(__dirname, "points.json");
-    await fs.writeFile(pointsFilePath, JSON.stringify(pointsToUpsert, null, 2));
+    // const pointsFilePath = path.join(__dirname, "points.json");
+    // await fs.writeFile(pointsFilePath, JSON.stringify(pointsToUpsert, null, 2));
 
-    console.log(`Upserting ${pointsToUpsert.length} points into ${collectionName}`);
-    await this.client.upsert(collectionName, {
-      wait: true,
-      points: pointsToUpsert,
-    });
-    console.log(`Upserted ${pointsToUpsert.length} points into ${collectionName}`);
+    try {
+      console.log(`Upserting ${pointsToUpsert.length} points into ${collectionName}`);
+      await this.client.upsert(collectionName, {
+        wait: true,
+        points: pointsToUpsert,
+      });
+      console.log(`Upserted ${pointsToUpsert.length} points into ${collectionName}`);
+    } catch (error) {
+      console.error(`Error upserting points into ${collectionName}:`, error);
+      throw error;
+    }
   }
 
-  async performSearch(
+  
+  async performSearch<R extends Record<string, unknown>>(
     collectionName: string,
     query: string,
     limit: number = 5
-  ) {
+  ): Promise<SearchResult<R>[]> {
     const queryEmbedding = await this.openAIService.createEmbedding(query);
     return this.client.search(collectionName, {
       vector: queryEmbedding,
       limit,
       with_payload: true,
-    });
+    }) as Promise<SearchResult<R>[]>;
   }
 }

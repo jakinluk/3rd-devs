@@ -23,6 +23,7 @@
     "s02e04": "bun run _lessons/s02e04/app.ts",
     "s02e05": "bun run _lessons/s02e05/app.ts",
     "s03e01": "bun run _lessons/s03e01/app.ts",
+    "s03e02": "bun run _lessons/s03e02/app.ts",
     "my-memory": "bun _lessons/memory/app.ts",
     "advanced_web_search": "bun advanced_web_search/app.ts",
     "chain": "bun run chain/app.ts",
