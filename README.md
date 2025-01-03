@@ -294,7 +294,7 @@ Do uruchomienia tego przykładu należy uzupełnić plik `.env` o wartość `MIS
 
 ### Video
 
-Do uruchomienia tego przykładu należy uzupełnić plik `.env` o wartość `GOOGLE_AI_STUDIO_API_KEY`, który można pobrać z [Google AI Studio](https://aistudio.google.com/).
+Do uruchomienia tego przykładu należy uzupełnić plik `.env` o wartość `ENV_GOOGLE_AI_STUDIO_API_KEY`, który można pobrać z [Google AI Studio](https://aistudio.google.com/).
 
 - Uruchomienie kodu: `bun video`
 - Interakcja: przykład wykonuje się automatycznie na pliku `video/test.mp3`
@@ -303,7 +303,7 @@ Do uruchomienia tego przykładu należy uzupełnić plik `.env` o wartość `GOO
 
 UWAGA: Ten przykład może zużywać duże ilości kredytów na ElevenLabs, więc jeśli chcesz zobaczyć rezultat jego działania, to w katalogu `narration` znajdują się dwa przykładowe pliki audio, które możesz odtworzyć bez uruchamiania kodu.
 
-Do uruchomienia tego przykładu należy uzupełnić plik `.env` o wartość `GOOGLE_AI_STUDIO_API_KEY`, który można pobrać z [Google AI Studio](https://aistudio.google.com/) oraz `ELEVEN_LABS_API_KEY`, który można pobrać z [ElevenLabs](https://elevenlabs.io/).
+Do uruchomienia tego przykładu należy uzupełnić plik `.env` o wartość `ENV_GOOGLE_AI_STUDIO_API_KEY`, który można pobrać z [Google AI Studio](https://aistudio.google.com/) oraz `ELEVEN_LABS_API_KEY`, który można pobrać z [ElevenLabs](https://elevenlabs.io/).
 
 - Uruchomienie kodu: `bun narration`
 - Interakcja: przykład wykonuje się automatycznie na treści wiadomości użytkownika przekazanej w funkcji `generateNarration` w pliku `narration/app.ts`

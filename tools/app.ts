@@ -12,7 +12,7 @@ const assistantService = new AssistantService({
   spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET as string,
   youtubeApiKey: process.env.YOUTUBE_API_KEY as string,
   smsApiToken: process.env.SMSAPI_API_KEY as string,
-  googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY as string,
+  googleMapsApiKey: process.env.ENV_GOOGLE_MAPS_API_KEY as string,
   calendarClientId: process.env.CALENDAR_CLIENT_ID as string,
   calendarClientSecret: process.env.CALENDAR_CLIENT_SECRET as string,
   resendApiKey: process.env.RESEND_API_KEY as string

@@ -40,8 +40,8 @@ const talebBooks = [
 async function initializeData() {
   const openAIService = new OpenAIService();
   const algoliaService = new AlgoliaService(
-    process.env.ALGOLIA_APP_ID!,
-    process.env.ALGOLIA_API_KEY!
+    process.env.ALGOLIA_APP_ID_1!,
+    process.env.ALGOLIA_API_KEY_1!
   );
   const vectorService = new VectorService(openAIService);
   const dbService = new DatabaseService(

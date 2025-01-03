@@ -15,7 +15,7 @@ export class ElevenLabsService {
       apiKey: process.env.ELEVENLABS_API_KEY
     });
 
-    const googleApiKey = String(process.env.GOOGLE_AI_STUDIO_API_KEY);
+    const googleApiKey = String(process.env.ENV_GOOGLE_AI_STUDIO_API_KEY);
     this.gemini = new GoogleGenerativeAI(googleApiKey);
     this.fileManager = new GoogleAIFileManager(googleApiKey);
   }

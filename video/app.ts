@@ -4,11 +4,11 @@ import fs from 'fs';
 import path from 'path';
 
 // Ensure the API key is set in the environment variables
-if (!process.env.GOOGLE_AI_STUDIO_API_KEY) {
-  throw new Error("GOOGLE_AI_STUDIO_API_KEY is not set in environment variables");
+if (!process.env.ENV_GOOGLE_AI_STUDIO_API_KEY) {
+  throw new Error("ENV_GOOGLE_AI_STUDIO_API_KEY is not set in environment variables");
 }
 
-const apiKey = process.env.GOOGLE_AI_STUDIO_API_KEY;
+const apiKey = process.env.ENV_GOOGLE_AI_STUDIO_API_KEY;
 const fileManager = new GoogleAIFileManager(apiKey);
 const genAI = new GoogleGenerativeAI(apiKey);
 

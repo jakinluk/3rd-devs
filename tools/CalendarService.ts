@@ -64,9 +64,9 @@ export class CalendarService {
 
   private async loadTokens() {
     dotenv.config();
-    const access_token = process.env.GOOGLE_ACCESS_TOKEN;
-    const refresh_token = process.env.GOOGLE_REFRESH_TOKEN;
-    const expiry_date = process.env.GOOGLE_TOKEN_EXPIRY;
+    const access_token = process.env.ENV_GOOGLE_ACCESS_TOKEN;
+    const refresh_token = process.env.ENV_GOOGLE_REFRESH_TOKEN;
+    const expiry_date = process.env.ENV_GOOGLE_TOKEN_EXPIRY;
 
     if (access_token && refresh_token && expiry_date) {
       return {
@@ -90,15 +90,15 @@ export class CalendarService {
       }
     };
 
-    updateEnvVariable('GOOGLE_ACCESS_TOKEN', tokens.access_token);
-    updateEnvVariable('GOOGLE_REFRESH_TOKEN', tokens.refresh_token || '');
-    updateEnvVariable('GOOGLE_TOKEN_EXPIRY', tokens.expiry_date?.toString() || '');
+    updateEnvVariable('ENV_GOOGLE_ACCESS_TOKEN', tokens.access_token);
+    updateEnvVariable('ENV_GOOGLE_REFRESH_TOKEN', tokens.refresh_token || '');
+    updateEnvVariable('ENV_GOOGLE_TOKEN_EXPIRY', tokens.expiry_date?.toString() || '');
 
     await fs.writeFile('.env', envContent.trim() + '\n');
 
     // Update process.env
-    process.env.GOOGLE_ACCESS_TOKEN = tokens.access_token;
-    process.env.GOOGLE_REFRESH_TOKEN = tokens.refresh_token || '';
-    process.env.GOOGLE_TOKEN_EXPIRY = tokens.expiry_date?.toString() || '';
+    process.env.ENV_GOOGLE_ACCESS_TOKEN = tokens.access_token;
+    process.env.ENV_GOOGLE_REFRESH_TOKEN = tokens.refresh_token || '';
+    process.env.ENV_GOOGLE_TOKEN_EXPIRY = tokens.expiry_date?.toString() || '';
   }
 }

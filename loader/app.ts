@@ -16,7 +16,7 @@ async function processAllDocuments() {
       fileService.process('examples/example.xlsx'),
       fileService.process('examples/example.wav'),
       fileService.process('examples/example.png'),
-      fileService.process('examples/example.mp4'), 
+      // fileService.process('examples/example.mp4'), 
 
       // notion 
 
@@ -47,6 +47,13 @@ async function processAllDocuments() {
     // EXAMPLE: Simple interaction with the file
     results.forEach((result, index) => {
       console.log(`Result ${index + 1}:`, result);
+    });
+
+    // wait for user input
+    process.stdin.resume();
+    process.stdin.on('data', (data) => {
+      console.log('User input:', data.toString());
+      process.exit(0);
     });
   } catch (error) {
     console.error('Error processing documents:', error);
