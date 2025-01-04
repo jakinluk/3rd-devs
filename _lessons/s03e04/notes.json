@@ -1,0 +1,97 @@
+[
+  {
+    "type": "person",
+    "noteFor": "BARBARA",
+    "noteContent": "[**RESTRICTED DATA**]"
+  },
+  {
+    "type": "place",
+    "noteFor": "KRAKOW",
+    "noteContent": "ALEKSANDER BARBARA ADAM"
+  },
+  {
+    "type": "person",
+    "noteFor": "ALEKSANDER",
+    "noteContent": "KRAKOW LUBLIN WARSZAWA"
+  },
+  {
+    "type": "place",
+    "noteFor": "WARSZAWA",
+    "noteContent": "RAFAŁ ALEKSANDER ANDRZEJ"
+  },
+  {
+    "type": "person",
+    "noteFor": "ANDRZEJ",
+    "noteContent": "WARSZAWA GRUDZIADZ"
+  },
+  {
+    "type": "place",
+    "noteFor": "LUBLIN",
+    "noteContent": "[**RESTRICTED DATA**]"
+  },
+  {
+    "type": "person",
+    "noteFor": "RAFAL",
+    "noteContent": "GRUDZIADZ WARSZAWA LUBLIN"
+  },
+  {
+    "type": "place",
+    "noteFor": "WARSZAWA",
+    "noteContent": "RAFAŁ ALEKSANDER ANDRZEJ"
+  },
+  {
+    "type": "person",
+    "noteFor": "ALEKSANDER",
+    "noteContent": "KRAKOW LUBLIN WARSZAWA"
+  },
+  {
+    "type": "place",
+    "noteFor": "GRUDZIADZ",
+    "noteContent": "RAFAL AZAZEL"
+  },
+  {
+    "type": "person",
+    "noteFor": "ADAM",
+    "noteContent": "KRAKOW CIECHOCINEK"
+  },
+  {
+    "type": "place",
+    "noteFor": "GRUDZIADZ",
+    "noteContent": "RAFAL AZAZEL"
+  },
+  {
+    "type": "person",
+    "noteFor": "RAFAL",
+    "noteContent": "GRUDZIADZ WARSZAWA LUBLIN"
+  },
+  {
+    "type": "place",
+    "noteFor": "CIECHOCINEK",
+    "noteContent": "ADAM GABRIEL"
+  },
+  {
+    "type": "person",
+    "noteFor": "ANDRZEJ",
+    "noteContent": "WARSZAWA GRUDZIADZ"
+  },
+  {
+    "type": "person",
+    "noteFor": "AZAZEL",
+    "noteContent": "GRUDZIADZ WARSZAWA KRAKOW LUBLIN ELBLAG"
+  },
+  {
+    "type": "place",
+    "noteFor": "ELBLAG",
+    "noteContent": "BARBARA"
+  },
+  {
+    "type": "person",
+    "noteFor": "GABRIEL",
+    "noteContent": "FROMBORK"
+  },
+  {
+    "type": "place",
+    "noteFor": "FROMBORK",
+    "noteContent": "GABRIEL ARTUR AZAZEL"
+  }
+]
