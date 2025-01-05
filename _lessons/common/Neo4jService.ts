@@ -70,7 +70,26 @@ export class Neo4jService {
     throw new Error(`Timeout waiting for index '${indexName}' to come online.`);
   }
 
-  async addNode(label: string, properties: Record<string, any>): Promise<{ id: number, properties: Record<string, any> }> {
+  async addNode(label: string, properties: Record<string, any>, propertyToEmbed?: string): Promise<{ id: number, properties: Record<string, any> }> {
+    if (propertyToEmbed) {
+      // Create embedding from name or title
+      const textForEmbedding = properties[propertyToEmbed];
+      if (textForEmbedding && textForEmbedding.length > 0) {
+        properties.embedding = await this.openAIService.createEmbedding(textForEmbedding);
+      }
+    }
+    const cypher = `
+      CREATE (n:${label} $properties)
+      RETURN id(n) AS id, n
+    `;
+    const result = await this.runQuery(cypher, { properties });
+    return {
+      id: (result.records[0].get('id') as neo4j.Integer).toNumber(),
+      properties: result.records[0].get('n').properties
+    };
+  }
+
+  async addNodeOrg(label: string, properties: Record<string, any>): Promise<{ id: number, properties: Record<string, any> }> {
     if (!properties.embedding) {
       // Create embedding from name or title
       const textForEmbedding = properties.name || properties.title || '';
