@@ -1,8 +1,7 @@
 const url = "xyz.ag3nts.org";
 const username = "tester";
 const password = "574e112a";
-
-import type { ChatCompletion, ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
+import type { ChatCompletion, ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { OpenAIService } from "../common/OpenAIService";
 import * as cheerio from 'cheerio';
 import prompt from './concise-response-prompt';
@@ -35,7 +34,7 @@ async function getAIResponse(question: string) {
     
     const messages = (await prompt({ vars: { query: question }})) as ChatCompletionMessageParam[];
     try {
-        const completion = (await openAIService.completion(messages)) as ChatCompletion;
+        const completion = (await openAIService.completion({messages, model: "gpt-4o"})) as ChatCompletion;
         return completion.choices[0]?.message?.content || 'No response received';
     } catch (error) {
         console.error('Error getting AI response:', error);
