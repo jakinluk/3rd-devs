@@ -36,15 +36,21 @@ class RemotePhotoFix {
 }
 
 
+export interface ToFixSingle {
+  filename: string;
+  action: "repair" | "darken" | "brighten" | "good"
+}
+
 export interface ToFix {
+  good: string[];
   repair: string[];
   darken: string[];
   brighten: string[];
 }
 
-export class PhotoFix {
+export class FixPhotosClient {
   private readonly remotePhotoFix = new RemotePhotoFix({
-    apiKey: process.env.API_KEY!,
+    apiKey: process.env.PERSONAL_API_KEY!,
     task: 'photos',
     endpoint: 'https://centrala.ag3nts.org/report'
   });
@@ -68,4 +74,13 @@ export class PhotoFix {
     const results = await Promise.all(promises);
     return results.map(result => result.message);
   }
-} 
+
+  async applyFix(input: ToFixSingle): Promise<string> {
+    const result = await this.remotePhotoFix.submit(input.filename, input.action.toUpperCase() as "REPAIR" | "DARKEN" | "BRIGHTEN");
+    console.log("Result:", result);
+    if (result.code === 0) {
+      return result.message;
+    }
+    throw new Error(`Failed to apply fix: ${result.message}`);
+  }
+}

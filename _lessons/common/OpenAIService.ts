@@ -101,9 +101,15 @@ export class OpenAIService {
 
   parseJsonResponse<IResponseFormat>(response: ChatCompletion): IResponseFormat {
     try {
+      console.log("ATTEMPT TO PARSE JSON RESPONSE:", response.choices?.[0]?.message?.content);
       const content = response.choices?.[0]?.message?.content;
       if (!content) {
-        throw new Error('Invalid response structure');
+        const errorInfo = {
+          finishReason: response.choices?.[0]?.finish_reason,
+          message: response.choices?.[0]?.message.refusal,
+          usage: response.usage,
+        }
+        throw new Error('Invalid response structure: ' + JSON.stringify(errorInfo));
       }
       const parsedContent = JSON.parse(content);
       delete parsedContent._thinking;

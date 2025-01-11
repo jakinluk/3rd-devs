@@ -22,20 +22,26 @@ export class PhotoFetcher {
           continue;
         }
 
-        const response = await fetch(url);
+        const fileName = path.basename(url);
+        const extension = path.extname(url);
+        const smallFileName = `${fileName.split(".")[0]}-small${extension}`;
+        console.log("Small file name:", smallFileName);
+
+        const smallVersionUrl = url.replace(fileName, smallFileName);
+
+        const response = await fetch(smallVersionUrl);
         if (!response.ok) {
           console.error(`Failed to fetch ${url}: ${response.statusText}`);
           continue;
         }
 
         const buffer = await response.buffer();
-        const fileName = path.basename(url);
         const filePath = path.join(this.filesDir, fileName);
         
         await fs.mkdir(this.filesDir, { recursive: true });
         await fs.writeFile(filePath, buffer);
         
-        downloadedFiles.push(filePath);
+        downloadedFiles.push(fileName);
       } catch (error) {
         console.error(`Error downloading ${url}:`, error);
       }
