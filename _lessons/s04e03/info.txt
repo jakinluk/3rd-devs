@@ -1,0 +1,25 @@
+https://centrala.ag3nts.org/data/7c7e8cd3-a4a4-45a5-aec6-71f0b2a8509a/softo.json
+
+{
+    "01": "Podaj adres mailowy do firmy SoftoAI",
+    "02": "Jaki jest adres interfejsu webowego do sterowania robotami zrealizowanego dla klienta jakim jest firma BanAN?",
+    "03": "Jakie dwa certyfikaty jako\u015bci ISO otrzyma\u0142a firma SoftoAI?"
+}
+
+https://softo.ag3nts.org/
+
+1. Zapamiętuj w dowolnej formie linki już odwiedzone, aby uniknąć zapętlenia mechanizmu
+2. Na stronie mogą pojawić się 2-3 linki, które potencjalnie wyglądają, jakby mogły zawierać wartościowe dane. Nie wchodź w każdy z nich, a jedynie w ten najbardziej prawdopodobny.
+3. Możesz (ale nie musisz!) sporządzić mapę odwiedzonych stron i ich zawartości. 
+Szukając odpowiedzi na pytanie nr 01, prawdopodobnie odwiedzisz kilka stron. 
+Czy szukając odpowiedzi na pytanie 02 i 03 naprawdę musisz odwiedzać je ponownie i znów wysyłać ich treść do LLM-a?
+
+
+
+Tym razem interesuje nas ten "środkowy" scenariusz, w którym model wyposażony w serię narzędzi ma możliwość korzystania z nich w dowolnej kolejności oraz ilości kroków. Nie może jednak zmienić raz ustalonego planu oraz wracać do wcześniejszych etapów. Poza tym sam system nie jest odporny na 'nieprzewidziane' scenariusze, więc polecenia użytkownika powinny być precyzyjne. Z tego powodu nie sprawdzi się on nam w takiej formie produkcyjnie, ale może pracować 'w tle' i zapisywać efekty swojej pracy w bazie danych lub przesyłać je na maila.
+
+
+S03E03 — Wyszukiwanie Hybrydowe.
+s03e04 Fileservice
+docs DocumentService
+

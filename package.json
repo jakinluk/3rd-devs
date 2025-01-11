@@ -29,6 +29,7 @@
     "s03e05": "bun run _lessons/s03e05/app.ts",
     "s04e01": "bun run _lessons/s04e01/app.ts",
     "s04e02": "bun run _lessons/s04e02/app.ts",
+    "s04e03": "bun run _lessons/s04e03/app.ts",
     "my-memory": "bun _lessons/memory/app.ts",
     "advanced_web_search": "bun advanced_web_search/app.ts",
     "chain": "bun run chain/app.ts",
@@ -88,7 +89,8 @@
     "audio:dev": "vite --config vite.config.audio.ts",
     "map:dev": "vite --config vite.config.map.ts",
     "camera:dev": "vite --config vite.config.camera.ts",
-    "notes": "bun run notes/app.ts"
+    "notes": "bun run notes/app.ts",
+    "s04e03": "bun run _lessons/s04e03/app.ts"
   },
   "peerDependencies": {
     "typescript": "^5.6.3"
@@ -121,7 +123,7 @@
     "better-sqlite3": "11.3.0",
     "canvas": "^2.11.2",
     "chalk": "^5.3.0",
-    "cheerio": "^1.0.0",
+    "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
@@ -174,7 +176,7 @@
     "smsapi": "^2.0.14",
     "table": "^6.8.2",
     "todoist": "^1.1.0",
-    "turndown": "^7.2.0",
+    "turndown": "^7.1.2",
     "uuid": "^10.0.0",
     "vectordb": "^0.10.0",
     "vite": "^5.4.9",
