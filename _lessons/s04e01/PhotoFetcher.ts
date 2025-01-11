@@ -2,11 +2,14 @@ import fetch from "node-fetch";
 import fs from "fs/promises";
 import path from "path";
 
-export class PhotoFetcher {
-  private baseUrl: string;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+const allowedBaseUrl = "https://centrala.ag3nts.org/";
+
+export class PhotoFetcher {
+  private filesDir: string;
+
+  constructor(filesDir: string) {
+    this.filesDir = filesDir;
   }
 
   async fetchPhotos(urls: string[]): Promise<string[]> {
@@ -14,7 +17,12 @@ export class PhotoFetcher {
     
     for (const url of urls) {
       try {
-        const response = await fetch(this.baseUrl + url);
+        if (!url.startsWith(allowedBaseUrl)) {
+          console.error(`Base URL ${url} is not allowed`);
+          continue;
+        }
+
+        const response = await fetch(url);
         if (!response.ok) {
           console.error(`Failed to fetch ${url}: ${response.statusText}`);
           continue;
@@ -22,9 +30,9 @@ export class PhotoFetcher {
 
         const buffer = await response.buffer();
         const fileName = path.basename(url);
-        const filePath = path.join(process.cwd(), 'temp', fileName);
+        const filePath = path.join(this.filesDir, fileName);
         
-        await fs.mkdir(path.join(process.cwd(), 'temp'), { recursive: true });
+        await fs.mkdir(this.filesDir, { recursive: true });
         await fs.writeFile(filePath, buffer);
         
         downloadedFiles.push(filePath);

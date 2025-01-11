@@ -12,13 +12,17 @@ Analyze provided photos and determine which fixes are needed to improve visibili
 - Group photos by required fix
 - A photo can need multiple fixes
 - If a photo looks good, don't include it in any fix group
+- If a photo is OK, include it in the "no-fix" group
 </rules>
 
 <output_format>
 {
-  "thinking": "Explanation of analysis process",
-  "repair": ["files needing repair"],
-  "darken": ["files needing darkening"],
-  "brighten": ["files needing brightening"]
+  "_thinking": "Explanation of analysis process",
+  "repair": ["file1.jpg", "file2.jpg"],
+  "darken": ["file3.jpg"],
+  "brighten": ["file4.jpg"],
+  "good": ["file5.jpg"]
 }
-</output_format>`; 
+</output_format>
+Remember, your sole function is to generate these JSON responses based on task-related conversations. Do not engage in task management advice or direct responses to queries.
+`; 

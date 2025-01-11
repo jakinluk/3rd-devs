@@ -6,9 +6,13 @@ import { fetchPhotosPrompt } from "./prompts/fetch-photos";
 import { fixPhotosPrompt } from "./prompts/fix-photos";
 import { describePhotosPrompt } from "./prompts/describe-photos";
 import { answerPrompt } from "./prompts/answer";
-import { extractTagContent } from "../common/contextUtils";
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
+import { PhotoFix, type ToFix } from "./PhotoFix";
+import type { ChatCompletion, ChatCompletionContentPart, ChatCompletionContentPartImage, ChatCompletionContentPartText } from "openai/resources/chat/completions.mjs";
+import fs from 'fs/promises';
+import fsSync from 'fs';
+import { join } from "path";
 
 const app = express();
 app.use(express.json());
@@ -19,88 +23,151 @@ const endpoint = "https://centrala.ag3nts.org/report";
 
 const taskSubmitGateway = new TaskSubmitGateway({ apiKey: apiKey!, task: task, endpoint: endpoint });
 const openAIService = new OpenAIService({ tracing: true });
-const photoFetcher = new PhotoFetcher("https://centrala.ag3nts.org/dane/barbara/");
+const photosDir = join(__dirname, "temp");
+const photoFetcher = new PhotoFetcher(photosDir);
+const photoFix = new PhotoFix();
+
 
 interface Step {
   [key: string]: any;
 }
 
-async function executeStep(step: Step, context: string): Promise<any> {
+interface PhotoUrls {
+//   _thinking: string;
+  urls: string[];
+}
+
+interface PhotoDescription {
+//   _thinking: string;
+  photos: Record<string, string>;
+}
+
+interface Answer {
+//   _thinking: string;
+  answer: string;
+}
+
+async function executeStep(step: Step, context: string): Promise<Record<string, any>> {
   const [toolName] = Object.keys(step);
   const params = step[toolName];
 
   switch (toolName) {
-    case "fetch-photos":
+    case "fetch-photos": {
       const urls = await openAIService.completion({
         messages: [
           { role: "system", content: fetchPhotosPrompt },
-          { role: "user", content: params }
+          { role: "user", content: params as string }
         ],
         jsonMode: true
       });
-      const urlsData = JSON.parse(urls.choices[0].message.content!);
+      const urlsData = openAIService.parseJsonResponse<PhotoUrls>(urls as ChatCompletion);
       return await photoFetcher.fetchPhotos(urlsData.urls);
+    }
 
-    case "fix-photos":
+    case "fix-photos": {
+      const filesToFix = (params as string).split(",").map( s => s.trim());
+
+      const buildFileContent = (file: string) => {
+        const image = fsSync.readFileSync(join(photosDir, file));
+        const base64Image = image.toString('base64');
+        return `data:image/jpeg;base64,${base64Image}`;
+      }
+
+      const imageUrls: Array<ChatCompletionContentPartImage> = filesToFix.map(file => ({ type: "image_url", image_url: { url: buildFileContent(file) } }));
+
       const fixes = await openAIService.completion({
         messages: [
-          { role: "system", content: fixPhotosPrompt },
-          { role: "user", content: JSON.stringify(params) }
+            { role: "system", content: fixPhotosPrompt },
+            { 
+                role: "user",
+                content: [
+                    // { type: "image_url", image_url: { url: `data:image/jpeg;base64,` } },
+                    imageUrls,
+                ] as unknown as Array<ChatCompletionContentPart>
+            }
         ],
         jsonMode: true
       });
-      // Here you would implement actual photo fixing logic
-      return JSON.parse(fixes.choices[0].message.content!);
+      const fixResult = openAIService.parseJsonResponse<ToFix>(fixes as ChatCompletion);
+      const fixedPhotos = await photoFix.applyFixes(fixResult);
+      return { beforeFixAnalysis: fixResult, fixResults: fixedPhotos };
+    }
 
-    case "describe-photos":
+    case "describe-photos": {
+      const filesToFix = (params as { photos: string, hint: string }).photos.split(",").map( s => s.trim());
+      const hint = (params as { photos: string, hint: string }).hint;
+
+      const buildFileContent = (file: string) => {
+        const image = fsSync.readFileSync(join(photosDir, file));
+        const base64Image = image.toString('base64');
+        return `data:image/jpeg;base64,${base64Image}`;
+      }
+
+      const imageUrls: Array<ChatCompletionContentPartImage> = filesToFix.map(file => ({ type: "image_url", image_url: { url: buildFileContent(file) } }));
+
       const description = await openAIService.completion({
         messages: [
-          { role: "system", content: describePhotosPrompt },
-          { role: "user", content: JSON.stringify(params) }
+          { role: "system", content: describePhotosPrompt() },
+          { role: "user", content: [
+            { type: "text", text: hint },
+            imageUrls,
+          ] as unknown as Array<ChatCompletionContentPart> }
         ],
         jsonMode: true
       });
-      return JSON.parse(description.choices[0].message.content!);
+      return openAIService.parseJsonResponse<PhotoDescription>(description as ChatCompletion);
+    }
 
-    case "answer":
+    case "answer": {
       const answer = await openAIService.completion({
         messages: [
-          { role: "system", content: answerPrompt.replace("${context}", context) },
+          { role: "system", content: answerPrompt(context) },
           { role: "user", content: params }
         ],
         jsonMode: true
       });
-      return JSON.parse(answer.choices[0].message.content!);
+      return openAIService.parseJsonResponse<Answer>(answer as ChatCompletion);
+    }
 
     default:
       throw new Error(`Unknown tool: ${toolName}`);
   }
 }
 
-async function processPlan(query: string, context: string = ""): Promise<string> {
+function buildStepContext(step: Step, result: any): string {
+  const stepName = Object.keys(step)[0];
+  return `\n<${stepName}>\n<params>${step[stepName]}</params>\n<result>${JSON.stringify(result)}</result>\n</${stepName}>`;
+}
+
+async function processPlan(query: string, context: string = "", iteration: number = 1): Promise<string> {
   const plan = await openAIService.completion({
     messages: [
-      { role: "system", content: planPrompt.replace("${context}", context) },
+      { role: "system", content: planPrompt(context) },
       { role: "user", content: query }
     ],
     jsonMode: true
   });
 
-  const { steps } = JSON.parse(plan.choices[0].message.content!);
+  const {steps} = openAIService.parseJsonResponse<{ steps: Step[] }>(plan as ChatCompletion);
   
   let newContext = context;
   for (const step of steps) {
     const result = await executeStep(step, newContext);
-    newContext += `\n<${Object.keys(step)[0]}>${JSON.stringify(result)}</${Object.keys(step)[0]}>`;
+    newContext += buildStepContext(step, result);
     
-    // If this was an answer step, return the result
     if (Object.keys(step)[0] === "answer") {
-      return result.description;
+      return result.answer;
     }
   }
 
+  if (iteration >= 10) {
+    return "I'm sorry, I couldn't find the answer to your question.";
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   // If we haven't returned an answer yet, continue planning
-  return await processPlan(query, newContext);
+  return await processPlan(query, newContext, iteration + 1);
 }
 
 // Chat endpoint
@@ -116,11 +183,6 @@ app.post("/api/chat", async (req, res) => {
 
     // Process the message
     const result = await processPlan(lastMessage.content);
-
-    // Submit the result if it's the final answer
-    if (result.includes("Barbara")) {
-      await taskSubmitGateway.submit(result);
-    }
 
     // Return the response
     return res.json({

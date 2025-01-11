@@ -99,17 +99,18 @@ export class OpenAIService {
     return Symbol.asyncIterator in response;
   }
 
-  parseJsonResponse<IResponseFormat>(response: ChatCompletion): IResponseFormat | ParsingError {
+  parseJsonResponse<IResponseFormat>(response: ChatCompletion): IResponseFormat {
     try {
       const content = response.choices?.[0]?.message?.content;
       if (!content) {
         throw new Error('Invalid response structure');
       }
       const parsedContent = JSON.parse(content);
+      delete parsedContent._thinking;
       return parsedContent;
     } catch (error) {
       console.error('Error parsing JSON response:', error);
-      return { error: 'Failed to process response', result: false };
+      throw new Error('Failed to process response');
     }
   }
 
