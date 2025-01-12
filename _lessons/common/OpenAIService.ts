@@ -23,14 +23,15 @@ export class OpenAIService {
   private elevenlabs: ElevenLabsClient;
   private groq: Groq;
 
-  constructor(opts?: {tracing?: boolean}) {
+  constructor(opts?: {tracing?: boolean, useOpenRouter?: boolean}) {
+    const params = opts?.useOpenRouter ? { apiKey: process.env.OPEN_ROUTER_API_KEY, baseURL: "https://openrouter.ai/api/v1" } : undefined;
     if (opts?.tracing) {
       console.log("Tracing enabled");
-      this.openai = observeOpenAI(new OpenAI(), {
+      this.openai = observeOpenAI(new OpenAI(params), {
         generationName: "OpenAI.Chat.Trace",
       });
     }else {
-      this.openai = new OpenAI();
+      this.openai = new OpenAI(params);
     }
     this.tokenizer = new Tokenizer();
     this.elevenlabs = new ElevenLabsClient({
@@ -101,9 +102,10 @@ export class OpenAIService {
 
   parseJsonResponse<IResponseFormat>(response: ChatCompletion): IResponseFormat {
     try {
-      console.log("ATTEMPT TO PARSE JSON RESPONSE:", response.choices?.[0]?.message?.content);
+      // console.log("ATTEMPT TO PARSE JSON RESPONSE:", response.choices?.[0]?.message?.content);
       const content = response.choices?.[0]?.message?.content;
       if (!content) {
+        console.log("RESPONSE", JSON.stringify(response));
         const errorInfo = {
           finishReason: response.choices?.[0]?.finish_reason,
           message: response.choices?.[0]?.message.refusal,
@@ -112,7 +114,7 @@ export class OpenAIService {
         throw new Error('Invalid response structure: ' + JSON.stringify(errorInfo));
       }
       const parsedContent = JSON.parse(content);
-      delete parsedContent._thinking;
+      // delete parsedContent._thinking;
       return parsedContent;
     } catch (error) {
       console.error('Error parsing JSON response:', error);

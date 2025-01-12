@@ -1,31 +1,39 @@
-import { scrapeWebpage } from './simple-web-scraper';
-import { writeFileSync } from 'fs';
+import { OpenAIService } from "../common/OpenAIService";
+import express from "express";
+import { WebSiteScrapeAgent } from "./agent/web-site-scrape-agent";
+import { AnswerTool } from "./tools/answer/answer-tool";
+import { ScrapeTool } from "./tools/scrape/scrape-tool";
+import { FindLinksTool } from "./tools/find-links/find-links";
 
-async function main() {
-    // You can change this URL for testing
-    const targetUrl = 'https://softo.ag3nts.org/';
+const app = express();
+app.use(express.json());
 
-    try {
-        console.log(`🔍 Scraping ${targetUrl}...`);
-        const result = await scrapeWebpage(targetUrl);
+const apiKey = process.env.PERSONAL_API_KEY;
+const task = "photos";
+const endpoint = "https://centrala.ag3nts.org/report";
 
-        console.log('\n📝 Markdown Content:');
-        console.log('-------------------');
-        console.log(result.markdown);
+// const taskSubmitGateway = new TaskSubmitGateway({ apiKey: apiKey!, task: task, endpoint: endpoint });
+const openAIService = new OpenAIService({ tracing: false, useOpenRouter: true });
 
-        console.log('\n🔗 Found Links:');
-        console.log('-------------');
-        result.links.forEach(link => console.log(`- ${link}`));
+const agent = new WebSiteScrapeAgent(openAIService);
+agent.registerTools([new ScrapeTool(), new AnswerTool(openAIService), new FindLinksTool(openAIService)]);
 
-        // Optionally save results to files
-        writeFileSync('content.md', result.markdown);
-        writeFileSync('links.json', JSON.stringify(result.links, null, 2));
+async function main(query: string) {
+  try {
 
-        console.log('\n✅ Results saved to content.md and links.json');
-    } catch (error) {
-        console.error('❌ Error:', error instanceof Error ? error.message : 'Unknown error occurred');
-        process.exit(1);
-    }
-}
+    const result = await agent.process(query);
 
-main();
+    console.log("Result:", result);
+
+
+  } catch (error) {
+    console.error("Error processing chat:", error);
+  }
+};
+
+// main("przeszukaj https://softo.ag3nts.org/ i podsj adres mailowy do firmy SoftoAI");
+// "kontakt@softoai.whatever"
+// main("źródło: https://softo.ag3nts.org/ , pytanie: Jaki jest adres interfejsu webowego do sterowania robotami zrealizowanego dla klienta jakim jest firma BanAN? (wskazówka - portfolio)");
+// Result: https://banan.ag3nts.org
+main("źródło: https://softo.ag3nts.org/ , pytanie: `Jakie dwa certyfikaty jako\u015bci ISO otrzyma\u0142a firma SoftoAI?`");
+// Result: ISO 9001 and ISO/IEC 27001
